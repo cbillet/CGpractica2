@@ -1,0 +1,413 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Sep 11 16:15:13 2019
+
+@author: nadia
+"""
+
+#%% cargo librerias
+import numpy as np
+import os #para setear directorio desde el codigo
+import pandas as pd
+from matplotlib import pyplot as plt
+from matplotlib import cm
+#%%cargo las salidas del modelo para las 5 simulaciones con la funcion cargar dentro de Cargar2.py
+ruta="/home/nadia/Documentos/materias/circulaciongeneral/practica2/modelo_QG/" #ruta NANU
+#ruta="/Users/macbookair/Desktop/practicasCG/practica2/modelo_QG/" #ruta CARO
+os.chdir(ruta)
+from Cargar2 import cargar 
+psi_temp_1,vort_temp_1,psiF_1,vortF_1,QG_diag_1,QG_curlw_1,X_1,Y_1,dx_1,dy_1=cargar(ruta+"out_tmp_s1/",1000000,500000,100,50)
+psi_temp_2,vort_temp_2,psiF_2,vortF_2,QG_diag_2,QG_curlw_2,X_2,Y_2,dx_2,dy_2=cargar(ruta+"out_tmp_s2/",1000000,500000,100,50)
+psi_temp_3,vort_temp_3,psiF_3,vortF_3,QG_diag_3,QG_curlw_3,X_3,Y_3,dx_3,dy_3=cargar(ruta+"out_tmp_s3/",1000000,500000,100,50)
+psi_temp_4,vort_temp_4,psiF_4,vortF_4,QG_diag_4,QG_curlw_4,X_4,Y_4,dx_4,dy_4=cargar(ruta+"out_tmp_s4/",1000000,500000,100,50)
+psi_temp_5,vort_temp_5,psiF_5,vortF_5,QG_diag_5,QG_curlw_5,X_5,Y_5,dx_5,dy_5=cargar(ruta+"out_tmp_s5/",1000000,500000,100,50)
+
+#%% ejercicio 1
+#Grafique la energia cinetica total de la cuenca (adimensional) en funcion del numero de iteracion temporal para cada simulacion (en un mismo grafico).
+#tomo la cuarta columna de la salida QG_diag que tiene la energia cinetica para cada paso temporal (10000 pasos) en el punto central del dominio
+plt.figure()
+plt.plot()
+plt.plot(QG_diag_1[:,0],QG_diag_1[:,3]/100000,label="S1")
+plt.plot(QG_diag_2[:,0],QG_diag_2[:,3]/100000,label="S2")
+plt.plot(QG_diag_3[:,0],QG_diag_3[:,3]/100000,label="S3")
+plt.plot(QG_diag_4[:,0],QG_diag_4[:,3]/100000,label="S4")
+plt.plot(QG_diag_5[:,0],QG_diag_5[:,3]/100000,label="S5")
+plt.xlabel("Paso temporal")
+plt.ylabel("Energia cinetica *1e5")
+plt.title("Evolucion de energia cinetica total Munk")
+plt.legend(loc='upper right')
+plt.savefig("ejercicio1", dpi=100)
+
+#A que se deben las diferencias?
+#cuando menor es el coeficiente de friccion lateral, o sea cuando menor es la friccion, mas energia
+#cinetica tendra asociada la simulacion. A demas (quizas sea por la escala, planteo duda) varia
+#mucho mas una vez "estabilizado". Y a demas (aunque despues se ve en maor detalle) tarda mas en 
+#estabilizarse la simulacion con menor friccion. 
+#Esto se debe a que a menor friccion, menor disipacion habra y las velocidades inducidas por
+#el viento seran mayores, reflejandose en una mayor energia cinetica
+#Notar que, aunque el coeficiente de friccion lateral cambia linealmente de una simulacion a otra,
+#la relacion entre las energias cineticas de las simulaciones no es lineal (podria ser logaritmica o
+#exponencial inversa  
+
+#%% Ejercicio 2
+#Calcule para cada simulacion el numero de iteraciones necesario para alcanzar el estado estacionario.
+
+#Queremos ver cuando se estabiliza el modelo
+Ec1=QG_diag_1[:,3]
+Ec2=QG_diag_2[:,3]
+Ec3=QG_diag_3[:,3]
+Ec4=QG_diag_4[:,3]
+Ec5=QG_diag_5[:,3]
+
+ 
+#veo de atras para adelante cuando se deja de cumplir la condicion de la consigna
+Ec1_invertida=np.flip(Ec1)
+k1=0
+while abs(((Ec1_invertida[0]-Ec1_invertida[k1])/Ec1_invertida[0])*100)<=1: #0.008 nda ok para lo que queremos
+    k1=k1+1
+k1
+
+Ec2_invertida=np.flip(Ec2)
+k2=0
+while abs(((Ec2_invertida[0]-Ec2_invertida[k2])/Ec2_invertida[0])*100)<=1: #0.008 nda ok para lo que queremos
+    k2=k2+1
+k2
+
+Ec3_invertida=np.flip(Ec3)
+k3=0
+while abs(((Ec3_invertida[0]-Ec3_invertida[k3])/Ec3_invertida[0])*100)<=1: #0.008 nda ok para lo que queremos
+    k3=k3+1
+k3
+
+
+Ec4_invertida=np.flip(Ec4)
+k4=0
+while abs(((Ec4_invertida[0]-Ec4_invertida[k4])/Ec4_invertida[0])*100)<=1: #0.008 nda ok para lo que queremos
+    k4=k4+1
+k4
+
+Ec5_invertida=np.flip(Ec5)
+k5=0
+while abs(((Ec5_invertida[0]-Ec5_invertida[k5])/Ec5_invertida[0])*100)<=1: #0.008 nda ok para lo que queremos
+    k5=k5+1
+k5
+
+
+ 
+#muestro resultados en plot
+Ec=[Ec1/100000,Ec2/100000,Ec3/100000,Ec4/100000,Ec5/100000]
+ind=["1","2","3","4","5"]
+k_est=[10000-k1,10000-k2,10000-k3,10000-k4,10000-k5]
+
+plt.figure()
+for i in range(0,5):
+    plt.plot(Ec[i],label="S"+ind[i])
+    plt.plot(k_est[i],Ec[i][k_est[i]],"ro")   
+    plt.annotate(str(k_est[i]), (k_est[i],Ec[i][k_est[i]])) #agrego etiqueta con paso temporal
+plt.xlabel("Paso temporal")
+plt.ylabel("Energia cinetica *1e5")
+plt.title("Evolucion de energia cinetica total Munk")
+plt.legend(loc='center right')
+plt.savefig("ejercicio2 Munk", dpi=100)  
+    
+#muestro resultados en tabla
+simulacion=["s1","s2","s3","s4","s5"]
+show_k_est=[simulacion,k_est]
+resultados2=pd.DataFrame(data=show_k_est)
+resultados2.to_excel("resultados_2.xls",index=False)
+
+
+
+        
+        
+#%% Ej 3
+
+levels_psi=np.arange(-800000/100000.0,10000/100000.0,10000/100000.0) #vector de -350000 a 0 cada 10000
+levels_vort=np.arange(-1e-5,3.5e-5,1e-6)
+#levels_psiF=np.arange()
+
+##defino magnitudes tipicas para dimensionalizar 
+L=1000000 #longitud de la cuenca en METROS. practica 1 lo dimensionalizamos con L en km 
+#(verificar que sea en metros y cambiarlo en practica 1). poniendo esto en metros la vorticidad
+#nos queda razonable 
+tau=0.3 #tension del viento en superficie
+D=3000 #profundidad del oceano EN metros
+rho=1025 #densidad
+betha=1e-11 
+U=2*np.pi*tau/(rho*D*betha*L) 
+
+#
+#dimensionalizo funciones corriente
+psiF_1_dim=psiF_1*U*L # funcion corriente dimensionalizada (dimension m*m/s) S1
+psiF_2_dim=psiF_2*U*L # funcion corriente dimensionalizada (dimension m*m/s) S2
+psiF_3_dim=psiF_3*U*L # funcion corriente dimensionalizada (dimension m*m/s) S3
+psiF_4_dim=psiF_4*U*L # funcion corriente dimensionalizada (dimension m*m/s) S4
+psiF_5_dim=psiF_5*U*L # funcion corriente dimensionalizada (dimension m*m/s) S5
+psiF_dim=[psiF_1_dim,psiF_2_dim,psiF_3_dim,psiF_4_dim,psiF_5_dim]
+
+#dimensionalizo vorticidad 
+vortF_1_dim=vortF_1*U/L 
+vortF_2_dim=vortF_2*U/L 
+vortF_3_dim=vortF_3*U/L 
+vortF_4_dim=vortF_4*U/L 
+vortF_5_dim=vortF_5*U/L 
+vortF_dim=[vortF_1_dim,vortF_2_dim,vortF_3_dim,vortF_4_dim,vortF_5_dim]
+
+#calculo transporte meridional aunque no lo pide
+
+My_1=D*(np.diff(psiF_1_dim,n=1, axis=1))/1e6
+My_2=D*(np.diff(psiF_2_dim,n=1, axis=1))/1e6
+My_3=D*(np.diff(psiF_3_dim,n=1, axis=1))/1e6
+My_4=D*(np.diff(psiF_4_dim,n=1, axis=1))/1e6
+My_5=D*(np.diff(psiF_5_dim,n=1, axis=1))/1e6
+My=[My_1,My_2,My_3,My_4, My_5]
+
+#ploteo
+X=[X_1/1000,X_2/1000,X_3/1000,X_4/1000,X_5/1000]
+Y=[Y_1/1000,Y_2/1000,Y_3/1000,Y_4/1000,Y_5/1000]
+sim=["S1","S2","S3","S4","S5"]
+#funcion corriente
+for i in range(0,5):
+    plt.figure()
+    plt.contourf(X[i],Y[i],psiF_dim[i]/100000.0,levels_psi, cmap=cm.jet)
+    plt.title("Campo de funcion corriente Munk"+sim[i])
+    plt.ylabel("Latitud (km)")
+    plt.xlabel("Longitud(km)")
+    cbar=plt.colorbar()
+    plt.contour(X[i], Y[i],psiF_dim[i], levels=0,colors="white")
+    cbar.ax.set_title("1e5 m2/s")
+    plt.savefig("Funcion corriente Munk"+sim[i], npi=100)
+    
+#vorticidad
+for i in range(0,5):
+    plt.figure()
+    #multipli1ue a la vort poe e7 para que me quede en las mismas magnitudes la barra que en la P1 
+    #plt.contourf(X[i],Y[i],vortF_dim[i],cmap=cm.jet) #para analizar cual es la escala mas grande 
+    plt.contourf(X[i],Y[i],vortF_dim[i]*1e7,levels=levels_vort*1e7,cmap=cm.jet) #defino la escala mas arriba en funcion de lo que de el ploteo con la linea anterior descomentada
+    cbar=plt.colorbar()
+    plt.title("Campo de vorticidad Munk "+sim[i])
+    plt.ylabel("Latitud (km)")
+    plt.xlabel("Longitud(km)")
+    cbar.ax.set_title("1e-7 1/s")
+    plt.contour(X[i], Y[i],vortF_dim[i], levels=0,colors="white")
+    plt.savefig("Campo de vorticidad munk "+sim[i], npi=100)
+
+#transporte
+levels_My=np.arange(-1750,500,250)    
+for i in range(0,5):
+    plt.figure()
+    #plt.contourf(X[i][0:99],Y[i],My[i],cmap=cm.jet) #para analizar cual es la escala mas grande 
+    plt.contourf(X[i][0:99],Y[i],My[i],levels=levels_My,cmap=cm.jet) #defino la escala mas arriba en funcion de lo que de el ploteo con la linea anterior descomentada
+    cbar=plt.colorbar()
+    plt.title("Campo de transporte meridional Munk "+sim[i])
+    cbar.ax.set_title("Sv")
+    plt.xlabel("longitud (km)")
+    plt.ylabel("latitud (km)")
+    plt.contour(X[i][0:99], Y[i],My[i], levels=0,colors="white")
+    plt.savefig("Campo de transporte meridional Munk "+sim[i], npi=100)    
+
+##
+#%%Extra analogo a ejercicio 1c de practica 1
+#(transporte meridional My [sv] en la latitud central de la cuenca vs distancia [km]+
+#vorticidad relativa [s-1] vs distancia [km])
+
+#transporte meridional 
+plt.figure()
+plt.plot
+plt.plot(np.zeros(1000),"k")
+plt.plot(X_1[0:99]/1000,My_1[25,:], label="S1") 
+plt.plot(X_2[0:99]/1000,My_2[25,:], label="S2")
+plt.plot(X_3[0:99]/1000,My_3[25,:], label="S3")
+plt.plot(X_4[0:99]/1000,My_4[25,:], label="S4")
+plt.plot(X_5[0:99]/1000,My_5[25,:], label="S5")
+plt.xlabel("distancia longitudinal[km]")
+plt.ylabel("transporte meridional [sv]")
+plt.title("Transporte meridional en la latitud central de la cuenca Munk")
+plt.legend()
+plt.savefig("Transporte meridional latitud central Munk (extra) ", dpi=100)
+
+#transporte meridional zoom
+plt.figure()
+plt.plot
+plt.plot(np.zeros(1000),"k")
+plt.plot(X_1[0:99]/1000,My_1[25,:], label="S1") 
+plt.plot(X_2[0:99]/1000,My_2[25,:], label="S2")
+plt.plot(X_3[0:99]/1000,My_3[25,:], label="S3")
+plt.plot(X_4[0:99]/1000,My_4[25,:], label="S4")
+plt.plot(X_5[0:99]/1000,My_5[25,:], label="S5")
+axes = plt.gca()
+axes.set_xlim(0, 200)
+plt.xlabel("distancia longitudinal[km]")
+plt.ylabel("transporte meridional [sv]")
+plt.suptitle("Transporte meridional en la latitud central de la cuenca Munk")
+plt.title("Borde oeste y contracorriente")
+plt.legend()
+plt.savefig("Transporte meridional latitud central zoom Munk(extra) ", dpi=100)
+
+
+
+#vorticidad
+
+plt.figure()
+plt.plot(np.zeros(1000),"k")
+plt.plot(X_1[0:100]/1000,vortF_1_dim[25,:]*1e7, label="S1") 
+plt.plot(X_2[0:100]/1000,vortF_2_dim[25,:]*1e7, label="S2") 
+plt.plot(X_3[0:100]/1000,vortF_3_dim[25,:]*1e7, label="S3") 
+plt.plot(X_2[0:100]/1000,vortF_4_dim[25,:]*1e7, label="S4") 
+plt.plot(X_3[0:100]/1000,vortF_5_dim[25,:]*1e7, label="S5") 
+plt.xlabel("distancia longitudinal [km]")
+plt.ylabel("vorticidad relativa [1e-7 s-1]")
+plt.title("Vorticidad relativa en la latitud central de la cuenca Munk")
+plt.legend()
+plt.savefig("Vorticidad relativa latitud central Munk(extra)", dpi=100)
+    
+#vorticidad zoom
+
+plt.figure()
+plt.plot(np.zeros(1000),"k")
+plt.plot(X_1[0:100]/1000,vortF_1_dim[25,:]*1e7, label="S1") 
+plt.plot(X_2[0:100]/1000,vortF_2_dim[25,:]*1e7, label="S2") 
+plt.plot(X_3[0:100]/1000,vortF_3_dim[25,:]*1e7, label="S3") 
+plt.plot(X_2[0:100]/1000,vortF_4_dim[25,:]*1e7, label="S4") 
+plt.plot(X_3[0:100]/1000,vortF_5_dim[25,:]*1e7, label="S5") 
+axes = plt.gca()
+axes.set_xlim(0, 200)
+plt.xlabel("distancia longitudinal [km]")
+plt.ylabel("vorticidad relativa [1e-7 s-1]")
+plt.suptitle("Vorticidad relativa en la latitud central de la cuenca Munk")
+plt.title("Borde oeste y contracorriente")
+plt.legend()
+plt.savefig("Vorticidad relativa latitud central zoom Munk (extra)", dpi=100)
+
+
+#%% Ejercicio 4
+
+
+
+#S1
+My_1=D*(np.diff(psiF_1_dim,n=1, axis=1))/1e6
+My_1_central=My_1[25,:] #latitud numero 25
+cambio_1=np.where(My_1_central[:-1] * My_1_central[1:] < 0 )[0]  #(lugar 6 elemento 7) te da la primer longitud donde cambia de signo termina el borde oeste en array (donde el transporte meridional se hace positivo)
+cambio_1=int(cambio_1)
+cambio_1=cambio_1+1
+My_1_borde_oeste_suma=np.sum(My_1_central[0:cambio_1]) #en sv hasta 
+My_1_total_suma=np.sum(My_1_central) #en sv
+extension_1_borde_oeste=np.sum(X_1[0:cambio_1])*20 #en m 
+
+#S2
+My_2=D*(np.diff(psiF_2_dim,n=1, axis=1))/1e6
+My_2_central=My_2[25,:] #latitud numero 25
+cambio_2=np.where(My_2_central[:-1] * My_2_central[1:] < 0 )[0]  #(5) te da la primer longitud donde cambia de signo termina el borde oeste en array (donde el transporte meridional se hace positivo)
+cambio_2=int(cambio_2)
+cambio_2=cambio_2+1
+My_2_borde_oeste_suma=np.sum(My_2_central[0:cambio_2]) #en sv hasta 
+My_2_total_suma=np.sum(My_2_central) #en sv
+extension_2_borde_oeste=np.sum(X_1[0:cambio_2])*20 #en m 
+
+#S3
+My_3=D*(np.diff(psiF_3_dim,n=1, axis=1))/1e6
+My_3_central=My_3[25,:] 
+cambio_3=np.where(My_3_central[:-1] * My_3_central[1:] < 0 )[0]  #(4)Cambia en 4 14y 16. Elijo qudatme con 5
+cambio_3=int(cambio_3[0])
+cambio_3=cambio_3+1
+My_3_borde_oeste_suma=np.sum(My_3_central[0:cambio_3]) #en sv hasta 
+My_3_total_suma=np.sum(My_3_central) #en sv
+extension_3_borde_oeste=np.sum(X_1[0:cambio_3])*20 #en m 
+
+
+#S4
+My_4=D*(np.diff(psiF_4_dim,n=1, axis=1))/1e6
+My_4_central=My_4[25,:] 
+cambio_4=np.where(My_4_central[:-1] * My_4_central[1:] < 0 )[0]  #(3)Cambia en 3 10 y 13. Elijo qudatme con 4
+cambio_4=int(cambio_4[0])
+cambio_4=cambio_4+1
+My_4_borde_oeste_suma=np.sum(My_4_central[0:cambio_4]) #en sv hasta 
+My_4_total_suma=np.sum(My_4_central) #en sv
+extension_4_borde_oeste=np.sum(X_1[0:cambio_4])*20 #en m 
+
+#S5
+My_5=D*(np.diff(psiF_5_dim,n=1, axis=1))/1e6
+My_5_central=My_5[25,:] 
+cambio_5=np.where(My_5_central[:-1] * My_5_central[1:] < 0 )[0]  #(1)Cambia en 1 5 y 8. Elijo qudatme con 2
+cambio_5=int(cambio_5[0])
+cambio_5=cambio_5+1
+My_5_borde_oeste_suma=np.sum(My_5_central[0:cambio_5]) #en sv hasta 
+My_5_total_suma=np.sum(My_5_central) #en sv
+extension_5_borde_oeste=np.sum(X_1[0:cambio_5])*20 #en m 
+
+
+#acomodo informacion en tabla devuelve archivo excel
+import pandas as pd
+resultados4= {' ': ["Transporte meridional borde oeste [sv]","Transporte meridional total [sv]","Extension borde oeste [Km]"],
+     "S1":[round(My_1_borde_oeste_suma,1),round(My_1_total_suma,1),round(extension_1_borde_oeste/1000,2)],
+     'S2':[round(My_2_borde_oeste_suma,1),round(My_2_total_suma,1),round(extension_2_borde_oeste/1000,2)],
+     "S3":[round(My_3_borde_oeste_suma,1),round(My_3_total_suma,1),round(extension_3_borde_oeste/1000,2)],
+     'S4':[round(My_4_borde_oeste_suma,1),round(My_4_total_suma,1),round(extension_4_borde_oeste/1000,2)],
+     "S5":[round(My_5_borde_oeste_suma,1),round(My_5_total_suma,1),round(extension_5_borde_oeste/1000,2)]}
+
+resultados4 = pd.DataFrame(data=resultados4)
+resultados4.to_excel("resultados_4.xls",index=False)
+
+#%% Ejercicio 5
+from Laplaciano import Calc_del2
+ds=0.1
+primer_termino=((np.diff(psiF_1,n=1, axis=1)))[25,:]/(ds) #este es el que tuvo que tirar magia dani con ese ds que viene del .dat (gridstep)
+segundo_termino=-QG_curlw_1[26,:]
+tercer_termino=-(0.025)*Calc_del2(vortF_1,1)[25,:]/(ds**2)
+
+plt.figure()
+plt.plot(np.zeros(1000),"k")
+plt.axvline(x=X_1[7]/1000,linestyle="dotted") #marco longitud donde termina borde oeste
+plt.plot(X_1[0:99]/1000,primer_termino[0:99],"r", label="Primer termino")
+plt.plot(X_1[0:99]/1000,segundo_termino[0:99],"b", label="Segundo termino")
+plt.plot(X_1[0:99]/1000,tercer_termino[0:99],"g", label="Tercer termino")
+plt.title("Terminos de la ecuacion de vorticidad Munk S1")
+plt.ylabel("1/s")
+plt.xlabel("Longitud (Km)")
+plt.legend()
+plt.savefig("terminos vorticidad Munk ej 5", dpi=100)
+
+#Solo borde oeste
+plt.figure()
+plt.plot(np.zeros(1000),"k")
+plt.axvline(x=X_1[7]/1000,linestyle="dotted") #marco longitud donde termina borde oeste
+plt.plot(X_1[0:99]/1000,primer_termino[0:99],"r", label="Primer termino")
+plt.plot(X_1[0:99]/1000,segundo_termino[0:99],"b", label="Segundo termino")
+plt.plot(X_1[0:99]/1000,tercer_termino[0:99],"g", label="Tercer termino")
+axes = plt.gca()
+axes.set_xlim([0,X_1[7]/1000])
+plt.suptitle("Terminos de la ecuacion de vorticidad Munk S1")
+plt.title("Borde oeste de cuenca")
+plt.ylabel("1/s")
+plt.xlabel("Longitud (Km)")
+plt.legend()
+plt.savefig("terminos vorticidad oeste MUnk ej 5", dpi=100)
+
+#borde este y centro
+plt.figure()
+plt.plot(np.zeros(1000),"k")
+plt.axvline(x=X_1[7]/1000,linestyle="dotted") #marco longitud donde termina borde oeste
+plt.plot(X_1[0:99]/1000,primer_termino[0:99],"r", label="Primer termino")
+plt.plot(X_1[0:99]/1000,segundo_termino[0:99],"b", label="Segundo termino")
+plt.plot(X_1[0:99]/1000,tercer_termino[0:99],"g", label="Tercer termino")
+axes = plt.gca()
+axes.set_xlim([X_1[6]/1000, X_1[-1]/1000])
+axes.set_ylim(-10,10)
+plt.suptitle("Terminos de la ecuacion de vorticidad Munk S1")
+plt.title("Este y centro de cuenca")
+plt.ylabel("1/s")
+plt.xlabel("Longitud (Km)")
+plt.legend()
+plt.savefig("terminos vorticidad centro este Munk ej 5", dpi=100)
+
+
+
+#primer termino: adveccion meridional de vorticidad planetaria
+#segundo termino: rotor de la tension del viento
+#tercer termino: vorticidad relativa dada por cortantes de velocidad inducidas por friccion lateral
+
+plt.close(all)
+
+
+
